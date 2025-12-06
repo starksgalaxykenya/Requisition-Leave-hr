@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cars Kenya Employee Portal</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* CSS STYLING */
+        :root {
+            --brand-color: #267921; /* Cars Kenya Green */
+            --light-green: #e9f5e9;
+            --dark-grey: #333;
+            --border-color: #ccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: var(--dark-grey);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .header {
+            background-color: var(--brand-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--light-green);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            background-color: transparent;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: color 0.3s, background-color 0.3s;
+            border-radius: 8px 8px 0 0;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background-color: var(--light-green);
+        }
+
+        .tab-button.active {
+            color: var(--brand-color);
+            border-bottom: 3px solid var(--brand-color);
+            background-color: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Form Styling */
+        h2 {
+            color: var(--brand-color);
+            border-bottom: 2px solid var(--light-green);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .form-row label, .form-row input {
+            flex-grow: 1;
+            min-width: 150px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        table thead th {
+            background-color: var(--brand-color);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table tbody td, table tfoot td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        
+        table input {
+            border: none;
+            padding: 5px;
+            height: auto;
+        }
+        
+        table tfoot td {
+            background-color: var(--light-green);
+            font-size: 1.1em;
+        }
+
+        /* Button Styling */
+        .submit-btn, .secondary-btn, .download-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        .submit-btn {
+            background-color: var(--brand-color);
+            color: white;
+            margin-right: 10px;
+        }
+        .submit-btn:hover { background-color: #1a5c1a; }
+
+        .secondary-btn {
+            background-color: #f0f0f0;
+            color: var(--dark-grey);
+            border: 1px solid var(--border-color);
+        }
+        .secondary-btn:hover { background-color: #e0e0e0; }
+
+        .download-btn {
+             background-color: #007bff;
+             color: white;
+             margin-right: 10px;
+        }
+        .download-btn:hover { background-color: #0056b3; }
+        
+        .remove-item-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        /* Tracker Specific Styles */
+        #tracker-content {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .filter-controls input, .filter-controls select {
+            flex-grow: 1;
+        }
+        #submissions-table th:last-child, #submissions-table td:last-child {
+            width: 120px;
+            text-align: center;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .approve-btn { background-color: #4CAF50; color: white; border: none; }
+        .reject-btn { background-color: #f44336; color: white; border: none; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>Cars Kenya Employee Portal</h1>
+    </header>
+
+    <div class="dashboard-container">
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="requisition">🛒 Procurement Requisition</button>
+            <button class="tab-button" data-tab="leave">🌴 Leave Application</button>
+            <button class="tab-button" data-tab="sick-off">🤒 Sick Off Application</button>
+            <button class="tab-button" data-tab="tracker">🔑 Submission Tracker (Admin)</button>
+        </nav>
+
+        <div id="requisition" class="tab-content active">
+            <form id="requisition-form">
+                <h2>Procurement Requisition Form</h2>
+
+                <div class="form-row">
+                    <label>Requisitioner Name:</label>
+                    <input type="text" id="req-name" required>
+                    <label>Date:</label>
+                    <input type="date" id="req-date" required>
+                </div>
+
+                <h3>Requested Items</h3>
+                <div class="table-responsive">
+                    <table id="requisition-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Unit Price (Ksh)</th>
+                                <th>Total (Ksh)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body">
+                            </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                                <td id="grand-total-cell" style="font-weight: bold;">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <button type="button" id="add-item-btn" class="secondary-btn">➕ Add Item</button>
+
+                <label for="req-justification">Justification (Why is this purchase necessary?):</label>
+                <textarea id="req-justification" rows="4" required></textarea>
+
+                <button type="submit" class="submit-btn">Submit Requisition</button>
+                <button type="button" id="download-requisition-pdf" class="download-btn">⬇️ Download PDF/Image</button>
+            </form>
+        </div>
+
+        <div id="leave" class="tab-content">
+            <form id="leave-form">
+                <h2>Leave Application Form</h2>
+                <div class="form-row">
+                    <label for="leave-name">Employee Name:</label>
+                    <input type="text" id="leave-name" required>
+                    <label for="leave-type">Leave Type:</label>
+                    <select id="leave-type" required>
+                        <option value="Annual">Annual Leave</option>
+                        <option value="Compassionate">Compassionate Leave</option>
+                        <option value="Maternity/Paternity">Maternity/Paternity Leave</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" id="start-date" required>
+                    <label for="end-date">End Date:</label>
+                    <input type="date" id="end-date" required>
+                </div>
+                <label for="leave-justification">Contact details while on leave and notes:</label>
+                <textarea id="leave-justification" rows="4" required></textarea>
+                <button type="submit" class="submit-btn">Submit Leave</button>
+            </form>
+        </div>
+
+        <div id="sick-off" class="tab-content">
+            <form id="sickoff-form">
+                <h2>Sick Off Application Form</h2>
+                <div class="form-row">
+                    <label for="sickoff-name">Employee Name:</label>
+                    <input type="text" id="sickoff-name" required>
+                    <label for="sickoff-date">Date of Sick Off:</label>
+                    <input type="date" id="sickoff-date" required>
+                </div>
+                <label for="sickoff-reason">Reason for Sick Off (Briefly):</label>
+                <textarea id="sickoff-reason" rows="3" required></textarea>
+                <p style="color:red; font-size: 0.9em;">*A medical certificate must be submitted to HR upon return for sick offs exceeding 2 days.</p>
+                <button type="submit" class="submit-btn">Submit Sick Off</button>
+            </form>
+        </div>
+
+        <div id="tracker" class="tab-content">
+            <h2>Submission Tracker (Admin)</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="password" id="admin-key-input" placeholder="Enter Authorization Key">
+                <button id="auth-key-btn" class="submit-btn">Unlock Tracker</button>
+            </div>
+
+            <div id="tracker-content" style="display: none;">
+                <div class="filter-controls">
+                    <select id="form-type-selector">
+                        <option value="Requisitions">Requisitions</option>
+                        <option value="LeaveApplications">Leave Applications</option>
+                        <option value="SickOffs">Sick Offs</option>
+                    </select>
+                    <input type="text" id="search-name" placeholder="Search by Requistioner Name">
+                    <input type="date" id="search-date">
+                    <button id="apply-filter-btn" class="secondary-btn">Search & Load</button>
+                </div>
+                
+                <table id="submissions-table">
+                    <thead>
+                        <tr><th>Timestamp</th><th>Submitted By</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" style="text-align: center;">Unlock the tracker to view submissions.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // JAVASCRIPT LOGIC
+        
+        // ** CONFIGURATION **
+        // REPLACE WITH YOUR ACTUAL APPS SCRIPT WEB APP URL
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxj91yoGhO6e61AJNyiy5Gh5hE5q4jN8k-lSS5X83rMJ1QAIOTAuLqj25pgbxPpwyOq-w/exec'; 
+        const ADMIN_KEY = 'CARSKENYAADMIN'; // Use a strong, complex key in a real deployment!
+
+        const tableBody = document.getElementById('items-table-body');
+        const addItemBtn = document.getElementById('add-item-btn');
+        const grandTotalCell = document.getElementById('grand-total-cell');
+
+        // --- CORE FUNCTIONS ---
+
+        function calculateTotal() {
+            let grandTotal = 0;
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const qtyInput = row.querySelector('.item-qty');
+                const priceInput = row.querySelector('.item-price');
+                const totalCell = row.querySelector('.item-row-total');
+
+                const quantity = parseFloat(qtyInput.value) || 0;
+                const price = parseFloat(priceInput.value) || 0;
+                const rowTotal = quantity * price;
+
+                grandTotal += rowTotal;
+                totalCell.textContent = rowTotal.toFixed(2);
+            });
+
+            grandTotalCell.textContent = grandTotal.toFixed(2);
+        }
+
+        function createNewRow() {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="item-name" required></td>
+                <td><input type="text" class="item-desc"></td>
+                <td><input type="number" min="1" value="1" class="item-qty" required></td>
+                <td><input type="number" min="0" value="0.00" step="0.01" class="item-price" required></td>
+                <td class="item-row-total">0.00</td>
+                <td><button type="button" class="remove-item-btn">🗑️</button></td>
+            `;
+            tableBody.appendChild(newRow);
+
+            const qtyInput = newRow.querySelector('.item-qty');
+            const priceInput = newRow.querySelector('.item-price');
+            
+            // Re-calculate on input change
+            qtyInput.addEventListener('input', calculateTotal);
+            priceInput.addEventListener('input', calculateTotal);
+
+            // Remove row logic
+            newRow.querySelector('.remove-item-btn').addEventListener('click', (e) => {
+                e.target.closest('tr').remove();
+                calculateTotal(); 
+            });
+
+            calculateTotal(); 
+        }
+        
+        // Function to send data to Google Apps Script
+        async function sendDataToSheets(formData) {
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                return result;
+
+            } catch (error) {
+                console.error('Submission Error:', error);
+                return { result: "error", message: "Network or script error." };
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set today's date for forms
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('req-date').value = today;
+            document.getElementById('sickoff-date').value = today;
+            
+            // Add initial row to Requisition table
+            createNewRow();
+
+            // Tab Switching Logic
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-tab');
+
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+            
+            // Requisition Item Add/Delete Logic
+            addItemBtn.addEventListener('click', createNewRow);
+        });
+
+
+        // 1. REQUISITION FORM SUBMISSION
+        document.getElementById('requisition-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const items = [];
+            document.querySelectorAll('#items-table-body tr').forEach(row => {
+                items.push({
+                    name: row.querySelector('.item-name').value,
+                    desc: row.querySelector('.item-desc').value,
+                    qty: row.querySelector('.item-qty').value,
+                    price: row.querySelector('.item-price').value,
+                    total: row.querySelector('.item-row-total').textContent
+                });
+            });
+
+            const formData = {
+                formType: 'Requisitions', 
+                name: form.querySelector('#req-name').value,
+                date: form.querySelector('#req-date').value,
+                justification: form.querySelector('#req-justification').value,
+                grandTotal: grandTotalCell.textContent,
+                items: items
+            };
+            
+            const result = await sendDataToSheets(formData);
+
+            if (result.result === 'success') {
+                alert('Requisition submitted successfully!');
+                form.reset(); 
+                tableBody.innerHTML = ''; // Clear table
+                createNewRow(); // Add one fresh row
+            } else {
+                alert('Submission failed: ' + result.message);
+            }
+        });
+        
+        // 2. LEAVE FORM SUBMISSION (Simplified)
+        document.getElementById('leave-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            
+            const formData = {
+                formType: 'LeaveApplications',
+                name: form.querySelector('#leave-name').value,
+                type: form.querySelector('#leave-type').value,
+                startDate: form.querySelector('#start-date').value,
+                endDate: form.querySelector('#end-date').value,
+                notes: form.querySelector('#leave-justification').value,
+            };
+            
+            const result = await sendDataToSheets(formData);
+            if (result.result === 'success') {
+                 alert('Leave Application submitted successfully!');
+                 form.reset();
+            } else {
+                 alert('Submission failed: ' + result.message);
+            }
+        });
+
+        // 3. SICK OFF FORM SUBMISSION (Simplified)
+        document.getElementById('sickoff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            
+            const formData = {
+                formType: 'SickOffs',
+                name: form.querySelector('#sickoff-name').value,
+                date: form.querySelector('#sickoff-date').value,
+                reason: form.querySelector('#sickoff-reason').value,
+            };
+            
+            const result = await sendDataToSheets(formData);
+            if (result.result === 'success') {
+                 alert('Sick Off Application submitted successfully!');
+                 form.reset();
+            } else {
+                 alert('Submission failed: ' + result.message);
+            }
+        });
+        
+        // 4. PDF/IMAGE DOWNLOAD FEATURE (Requisition Only)
+        document.getElementById('download-requisition-pdf').addEventListener('click', () => {
+             const input = document.getElementById('requisition-table').closest('form');
+             
+             // Temporarily hide the action column for a clean PDF look
+             const actions = input.querySelectorAll('th:last-child, td:last-child');
+             actions.forEach(el => el.style.display = 'none');
+
+             html2canvas(input, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgHeight = canvas.height * pdfWidth / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+                pdf.save("requisition_" + document.getElementById('req-name').value + ".pdf");
+                
+                // Show the action column again
+                actions.forEach(el => el.style.display = '');
+            }).catch(error => {
+                alert("PDF generation failed. Ensure jsPDF and html2canvas scripts are included.");
+                console.error(error);
+            });
+        });
+        
+        // 5. TRACKER LOGIC (Basic Auth and Data Load)
+
+        document.getElementById('auth-key-btn').addEventListener('click', () => {
+            const key = document.getElementById('admin-key-input').value;
+            if (key === ADMIN_KEY) {
+                document.getElementById('tracker-content').style.display = 'block';
+                loadSubmissions(document.getElementById('form-type-selector').value);
+            } else {
+                alert('Invalid Authorization Key.');
+            }
+        });
+        
+        document.getElementById('apply-filter-btn').addEventListener('click', () => {
+            const formType = document.getElementById('form-type-selector').value;
+            loadSubmissions(formType);
+        });
+
+
+        // Placeholder for data retrieval and table rendering (Requires Apps Script to be deployed)
+        async function loadSubmissions(formType) {
+            const tableBody = document.querySelector('#submissions-table tbody');
+            const searchName = document.getElementById('search-name').value.toLowerCase();
+            const searchDate = document.getElementById('search-date').value;
+            
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--brand-color);">Loading submissions...</td></tr>';
+            
+            try {
+                 // ** IMPORTANT: The Apps Script doPost/doGet needs modification to handle this request
+                 // See Phase 3, Step 2/3 of the previous response.
+                const url = `${WEB_APP_URL}?action=get&formType=${formType}`;
+                const response = await fetch(url);
+                const data = await response.json(); 
+                
+                // Filter data on the frontend (for simplicity)
+                const filteredData = data.filter(item => {
+                    const nameMatch = item['Requisitioner Name'] ? item['Requisitioner Name'].toLowerCase().includes(searchName) : false;
+                    const dateMatch = searchDate ? item['Date'] === searchDate : true;
+                    
+                    return nameMatch && dateMatch;
+                });
+
+                renderTable(filteredData, formType);
+
+            } catch (error) {
+                console.error('Data retrieval failed:', error);
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Failed to retrieve data. Check your Apps Script deployment.</td></tr>';
+            }
+        }
+        
+        // Placeholder function to render the data in the table
+        function renderTable(data, formType) {
+            const table = document.getElementById('submissions-table');
+            let html = '';
+
+            if (data.length === 0) {
+                table.querySelector('tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">No submissions found.</td></tr>';
+                return;
+            }
+
+            // Dynamically set table headers based on form type
+            if (formType === 'Requisitions') {
+                 table.querySelector('thead').innerHTML = '<tr><th>Timestamp</th><th>Requisitioner</th><th>Grand Total</th><th>Status</th><th>Actions</th></tr>';
+            } else if (formType === 'LeaveApplications') {
+                 table.querySelector('thead').innerHTML = '<tr><th>Timestamp</th><th>Employee</th><th>Period</th><th>Status</th><th>Actions</th></tr>';
+            } else if (formType === 'SickOffs') {
+                 table.querySelector('thead').innerHTML = '<tr><th>Timestamp</th><th>Employee</th><th>Date</th><th>Status</th><th>Actions</th></tr>';
+            }
+            
+            data.forEach(item => {
+                let primaryData = '';
+                if (formType === 'Requisitions') {
+                    primaryData = `<td>${item['Requisitioner Name']}</td><td>Ksh ${item['Grand Total']}</td>`;
+                } else if (formType === 'LeaveApplications') {
+                    primaryData = `<td>${item['Employee Name']}</td><td>${item['Start Date']} to ${item['End Date']}</td>`;
+                } else if (formType === 'SickOffs') {
+                    primaryData = `<td>${item['Employee Name']}</td><td>${item['Date of Sick Off']}</td>`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${new Date(item['Timestamp']).toLocaleString()}</td>
+                        ${primaryData}
+                        <td style="color:${item['Status'] === 'Approved' ? 'green' : item['Status'] === 'Rejected' ? 'red' : 'orange'}">${item['Status']}</td>
+                        <td>
+                            <button class="action-btn approve-btn" data-id="${item['Timestamp']}">Approve</button>
+                            <button class="action-btn reject-btn" data-id="${item['Timestamp']}">Reject</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            table.querySelector('tbody').innerHTML = html;
+            
+            // Note: The Approve/Reject actions require a new Apps Script function
+            // to update the 'Status' column in the Google Sheet based on the timestamp (data-id).
+        }
+        
+    </script>
+</body>
+</html>
